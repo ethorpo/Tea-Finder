@@ -5,7 +5,6 @@ var attacks;
 var attack;
 var blocks;
 var block;
-var blockBlast;
 var platform;
 var edge;
 var player;
@@ -48,7 +47,6 @@ function preload() {
 	game.load.image('platform-side', 'img/platform-side.png');
 	game.load.image('platform-single', 'img/platform-single.png');
 	game.load.image('sky', 'img/sky.png');
-	game.load.image('sky-1', 'img/sky-1.png');
 	game.load.spritesheet('dude', 'img/kngiht-Test.png', 32, 48);
 	game.load.spritesheet('bad-guy-sword', 'img/bad-guy-sword-sheet.png', 32, 48);
 	game.load.spritesheet('bad-guy-small', 'img/bad-guy-small-sheet.png', 32, 48);
@@ -60,8 +58,6 @@ function preload() {
 	game.load.image('restartSign', 'img/restart.png');
 	game.load.image('shield-right', 'img/shield-right.png');
 	game.load.image('shield-left', 'img/shield-left.png');
-	game.load.image('shield-blast-right', 'img/shield-blast-right.png');
-	game.load.image('shield-blast-left', 'img/shield-blast-left.png');
 	game.load.image('exit', 'img/door-open.png');
 	game.load.image('door', 'img/door-closed.png');
 	game.load.image('bossExit', 'img/boss-door-open.png');
@@ -73,6 +69,7 @@ function preload() {
 	game.load.image('spike', 'img/spike.png');
 	game.load.image('credit', 'img/credit.png');
 	game.load.image('orb', 'img/orb.png');
+	
 }
 
 function create() {
@@ -93,7 +90,6 @@ function update() {
 	game.physics.arcade.overlap(player, coins, collectcoins, null, this);
 	game.physics.arcade.overlap(small, attacks, fightSmall, null, this);
 	game.physics.arcade.overlap(shooter, attacks, fightShooter, null, this);
-	//game.physics.arcade.overlap(sword, attacks, fightSword, null, this);
 	game.physics.arcade.overlap(player, sword, die, null, this);
 	game.physics.arcade.overlap(player, small, die, null, this);
 	game.physics.arcade.overlap(player, shot, die, null, this);
@@ -124,6 +120,7 @@ function update() {
 	{
 		bossStage();
 	}*/
+	
 
 	//player
 		
@@ -173,34 +170,22 @@ function update() {
 		if (key3.duration < 100)
 		{
 		
-			if (direction == 1)
-			{
+		if (direction == 1)
+		{
 			
-				block = blocks.create(player.body.x + 25, player.body.y, 'shield-right');
+		block = blocks.create(player.body.x + 25, player.body.y, 'shield-right');
 				block.scale.setTo(0.75, 0.75);
-				
-				blockBlast = blocks.create(player.body.x + 50, player.body.y - 10, 'shield-blast-right');
-				block.scale.setTo(0.75, 0.75);
-				blockBlast.body.velocity.x = 500;
-				if (blockBlast.body.x >= player.body.x + 100)
-				{
-					blockBlast.kill();
-				}
-
-			}
-			else
-			{		
-				block = blocks.create(player.body.x - 40, player.body.y, 'shield-left');
-				block.scale.setTo(0.75, 0.75);
-				blockBlast = blocks.create(player.body.x - 75, player.body.y - 10, 'shield-blast-left');
-				block.scale.setTo(0.75, 0.75);
-				blockBlast.body.velocity.x = -500;
-
-			}
-
 		}
+	else
+		{		
+		block = blocks.create(player.body.x - 40, player.body.y, 'shield-left');
+				block.scale.setTo(0.75, 0.75);
+		}
+
+	}
 	}
 		
+	
 	if (key1.isDown && key3.isDown) 
 	{
 		attack.kill();
@@ -470,16 +455,16 @@ function update() {
 		small.body.velocity.x = smallMove;
 	}
 		
-	if (player.body.x < sword.body.x && player.body.y > sword.body.y - 50 && player.body.y < sword.body.y + 50 && hitPlatform && swordStun == false)
+	if (player.body.x < sword.body.x && player.body.y > sword.body.y - 50 && player.body.y < sword.body.y + 50 && hitPlatform)
 	{
 		swordMove = -100;
 	}
-	else if (player.body.x > sword.body.x && player.body.y > sword.body.y - 50 && player.body.y < sword.body.y + 50 && hitPlatform && swordStun == false)
+	else if (player.body.x > sword.body.x && player.body.y > sword.body.y - 50 && player.body.y < sword.body.y + 50 && hitPlatform)
 	{
 		swordMove = 100;
 	}
 		
-	else (sword.body.velocity.x = 0 && swordStun == false)
+	else (sword.body.velocity.x = 0)
 	{
 		sword.body.velocity.x = swordMove;
 	}
@@ -501,8 +486,6 @@ function update() {
 	}
 	if (swordStun == true)
 	{
-		sword.animations.play('stun');
-		swordMove = 0;
 		game.physics.arcade.overlap(sword, attacks, fightSword, null, this);
 	}
 	
@@ -587,7 +570,7 @@ function fightSmall () {
 	}
 }
 
-function stunSword () {
+function stunSword (sword, block) {
 	
 		swordStun = true;
 		sword.animations.play('stun');
@@ -668,9 +651,6 @@ function loadNext () {
 
 game.world.removeAll();
 spikes.callAll('kill');
-fightShooter();
-fightSword();
-fightSmall();
 
 		if (keyCount == 0)
 		{
@@ -707,7 +687,7 @@ fightSmall();
 		if (keyCount == 8)
 		{
 			stage10();
-			sword.kill();
+		sword.kill();
 		}
 		if (keyCount == 9)
 		{
@@ -736,8 +716,7 @@ function keyCollect (player, key) {
 		level.enableBody = true;
 		level.body.immovable = true;
 	}
-	else
-	{
+	else{
 	var level = load.create(exit.position.x, exit.position.y, 'exit');
 	level.enableBody = true;
 	level.body.immovable = true;
@@ -767,7 +746,7 @@ function start ()
 
 		//World
 	    game.physics.startSystem(Phaser.Physics.ARCADE);
-		game.add.sprite(0, 0, 'sky-1');
+		game.add.sprite(0, 0, 'sky');
 		platform = game.add.group();
 		platform.enableBody = true;
 		edge = game.add.group();
@@ -848,7 +827,6 @@ function start ()
 		sword.animations.add('left', [0, 1, 2, 3], 10, true);
 		sword.animations.add('right', [5, 6, 7, 8], 10, true);
 		sword.animations.add('stun', [4], 10, true);
-		sword.kill();
 		
 		shooter = game.add.sprite(150, 400, 'bad-guy-shoot');
 		shooter.enableBody = true;
@@ -897,6 +875,7 @@ function start ()
 		
 	}
 		
+
 
 function stage2 ()
 {
@@ -987,6 +966,10 @@ function stage2 ()
 		sword.animations.add('left', [0, 1, 2, 3], 10, true);
 		sword.animations.add('right', [5, 6, 7, 8], 10, true);
 		sword.animations.add('stun', [4], 10, true);
+		
+		shooter = game.add.sprite(150, 400, 'bad-guy-shoot');
+		shooter.enableBody = true;
+		game.physics.arcade.enable(shooter);
 
 				
 		//Player
@@ -1077,6 +1060,16 @@ function stage3 ()
 		coin.scale.setTo(0.5, 0.5);		
 		
 		//enimies
+		
+		small = game.add.sprite(400, 450, 'bad-guy-small');
+		small.scale.setTo(1.75, 1.75);
+		game.physics.arcade.enable(small);
+		small.enableBody = true;
+		small.body.gravity.y = 5000;
+		small.body.collideWorldBounds = true;
+		smallMove = 100;
+		small.animations.add('left', [3], 10, true);
+		small.animations.add('right', [5], 10, true);
 		
 		sword = game.add.sprite(600, 200, 'bad-guy-sword');
 		sword.scale.setTo(1.75, 1.75);
@@ -1182,7 +1175,17 @@ function stage4 ()
 		coin.scale.setTo(0.5, 0.5);		
 		
 		//enimies
-
+		
+		small = game.add.sprite(400, game.world.height - 125, 'bad-guy-small');
+		small.scale.setTo(1.75, 1.75);
+		game.physics.arcade.enable(small);
+		small.enableBody = true;
+		small.body.gravity.y = 5000;
+		small.body.collideWorldBounds = true;
+		smallMove = 100;
+		small.animations.add('left', [3], 10, true);
+		small.animations.add('right', [5], 10, true);
+		
 		sword = game.add.sprite(400, 300, 'bad-guy-sword');
 		sword.scale.setTo(1.75, 1.75);
 		game.physics.arcade.enable(sword);
@@ -1195,7 +1198,7 @@ function stage4 ()
 		sword.animations.add('stun', [4], 10, true);
 		
 		
-		shooter = game.add.sprite(125, 150, 'bad-guy-shoot');
+		shooter = game.add.sprite(25, 150, 'bad-guy-shoot');
 		shooter.enableBody = true;
 		game.physics.arcade.enable(shooter);
 		
@@ -1312,6 +1315,12 @@ function stage5 ()
 		sword.animations.add('left', [0, 1, 2, 3], 10, true);
 		sword.animations.add('right', [5, 6, 7, 8], 10, true);
 		sword.animations.add('stun', [4], 10, true);
+		
+		
+		shooter = game.add.sprite(650, 50, 'bad-guy-shoot');
+		shooter.enableBody = true;
+		game.physics.arcade.enable(shooter);
+		
 		
 		//Player
 		
@@ -1515,6 +1524,11 @@ function stage7 ()
 		small.animations.add('left', [3], 10, true);
 		small.animations.add('right', [5], 10, true);
 		
+		shooter = game.add.sprite(675, 300, 'bad-guy-shoot');
+		shooter.enableBody = true;
+		game.physics.arcade.enable(shooter);
+		
+		
 		//Player
 		
 		player = game.add.sprite(50, game.world.height - 80, 'dude');
@@ -1589,6 +1603,30 @@ function stage8 ()
 		exit = game.add.sprite(50, 85, 'door');
 		key = goldKey.create(700, 50, 'key');
 		key.body.immovable = true;
+		var spike = spikes.create(0, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(32, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(64, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(98, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(130, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(162, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(196, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(228, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
 		
 		//Pickups
 		
@@ -1601,7 +1639,7 @@ function stage8 ()
 		
 		//enimies
 		
-		small = game.add.sprite(50, 450, 'bad-guy-small');
+		small = game.add.sprite(400, game.world.height - 125, 'bad-guy-small');
 		small.scale.setTo(1.75, 1.75);
 		game.physics.arcade.enable(small);
 		small.enableBody = true;
@@ -1610,6 +1648,18 @@ function stage8 ()
 		smallMove = 100;
 		small.animations.add('left', [3], 10, true);
 		small.animations.add('right', [5], 10, true);
+		
+		sword = game.add.sprite(50, 50, 'bad-guy-sword');
+		sword.scale.setTo(1.75, 1.75);
+		game.physics.arcade.enable(sword);
+		sword.enableBody = true;
+		sword.body.gravity.y = 5000;
+		sword.body.collideWorldBounds = true;
+		swordMove = 100;
+		sword.animations.add('left', [0, 1, 2, 3], 10, true);
+		sword.animations.add('right', [5, 6, 7, 8], 10, true);
+		sword.animations.add('stun', [4], 10, true);
+		
 		
 		shooter = game.add.sprite(25, 250, 'bad-guy-shoot');
 		shooter.enableBody = true;
@@ -1688,12 +1738,30 @@ function stage9 ()
 		stop.body.immovable = true;
 		stop = edge.create(-9, 550, 'stop');
 		stop.body.immovable = true;
-		stop = edge.create(790, 550, 'stop');
+		stop = edge.create(590, 550, 'stop');
 		stop.body.immovable = true;
 		enter = game.add.sprite(50, game.world.height - 95, 'door');
 		exit = game.add.sprite(50, 35, 'door');
 		key = goldKey.create(25, 150, 'key');
 		key.body.immovable = true;
+		var spike = spikes.create(600, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(632, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(664, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(696, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(728, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(760, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
 		
 		//Pickups
 		
@@ -1726,6 +1794,12 @@ function stage9 ()
 		sword.animations.add('left', [0, 1, 2, 3], 10, true);
 		sword.animations.add('right', [5, 6, 7, 8], 10, true);
 		sword.animations.add('stun', [4], 10, true);
+		
+		
+		shooter = game.add.sprite(675, 50, 'bad-guy-shoot');
+		shooter.enableBody = true;
+		game.physics.arcade.enable(shooter);
+		
 		
 		//Player
 		
@@ -1798,6 +1872,66 @@ function stage10 ()
 		exit = game.add.sprite(400, 38, 'bossDoor');
 		key = goldKey.create(725, 75, 'bossKey');
 		key.body.immovable = true;
+		var spike = spikes.create(600, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(568, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(536, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(504, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(472, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(440, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(408, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(376, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(344, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(312, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(280, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(248, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(216, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(184, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(152, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(120, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(88, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(56, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(24, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
+		spike = spikes.create(-12, 535, 'spike');
+		spike.body.immovable = true;
+		spike.scale.setTo(.5, .5);
 		
 		//Pickups
 
