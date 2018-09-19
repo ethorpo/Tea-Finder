@@ -13,6 +13,7 @@ var small;
 var sword;
 var shooter;
 var shot;
+var boss;
 var shotFired = false;
 var smallMove = -100;
 var swordMove = 100;
@@ -39,6 +40,8 @@ var specialCount = 0;
 var spike;
 var spikes;
 var bossKey;
+var bossMode = 1;
+var bossHealth = 300;
 
 function preload() {
 	
@@ -52,6 +55,7 @@ function preload() {
 	game.load.spritesheet('dude', 'img/kngiht-Test.png', 32, 48);
 	game.load.spritesheet('bad-guy-sword', 'img/bad-guy-sword-sheet.png', 32, 48);
 	game.load.spritesheet('bad-guy-small', 'img/bad-guy-small-sheet.png', 32, 48);
+	game.load.spritesheet('boss', 'img/boss-sheet.png', 64, 64);
 	game.load.image('bad-guy-shoot', 'img/bad-guy-shoot.png');
 	game.load.spritesheet('shooterShot', 'img/missle.png', 32, 48);
 	game.load.image('stop', 'img/stop.png');
@@ -94,11 +98,12 @@ function update() {
 	game.physics.arcade.overlap(small, attacks, fightSmall, null, this);
 	game.physics.arcade.overlap(shooter, attacks, fightShooter, null, this);
 	//game.physics.arcade.overlap(sword, attacks, fightSword, null, this);
-	game.physics.arcade.overlap(player, sword, die, null, this);
-	game.physics.arcade.overlap(player, small, die, null, this);
-	game.physics.arcade.overlap(player, shot, die, null, this);
-	game.physics.arcade.overlap(player, shooter, die, null, this);
-	game.physics.arcade.overlap(player, spikes, die, null, this);
+	//game.physics.arcade.overlap(player, sword, die, null, this);
+	//game.physics.arcade.overlap(player, small, die, null, this);
+	//game.physics.arcade.overlap(player, shot, die, null, this);
+	//game.physics.arcade.overlap(player, shooter, die, null, this);
+	//game.physics.arcade.overlap(player, spikes, die, null, this);
+	game.physics.arcade.overlap(player, boss, die, null, this);
 	game.physics.arcade.overlap(small, edge, smallTurn, null, this);
 	game.physics.arcade.overlap(sword, edge, swordTurn, null, this);
 	game.physics.arcade.overlap(attacks, attacks, resetAttack1, null, this);
@@ -110,7 +115,7 @@ function update() {
 	game.physics.arcade.overlap(specialAttack1, small, fightSmall, null, this);
 	game.physics.arcade.overlap(specialAttack2, sword, fightSword, null, this);
 	game.physics.arcade.overlap(specialAttack3, shooter, fightShooter, null, this);
-	
+	game.physics.arcade.overlap(boss, attacks, bossHit, null, this);
 
 	//restart
 	
@@ -120,10 +125,10 @@ function update() {
 		start();
 		specialFired = false;
 	}
-	/*if (keyNEXT.isDown)
+	if (keyNEXT.isDown)
 	{
 		bossStage();
-	}*/
+	}
 
 	//player
 		
@@ -567,6 +572,72 @@ function update() {
 		shotFired = false;
 	}
 	}
+	
+	//boss
+	
+	if (boss.alive == true)
+	{
+		boss.animations.play('fly');
+	}
+	
+	else if (boss.alive == false && bossStage == 3)
+	{
+		key = goldKey.create(368, 300, 'orb');
+		key.body.immovable = true;
+	}
+	
+	if (bossMode == 1)
+	{		
+		if (boss.body.x < 0)
+		{
+			boss.body.velocity.x = 200;
+			bossHealth = bossHealth - 20;
+		}
+		else if (boss.body.x > 576)
+		{
+			boss.body.velocity.x = -200;
+			bossHealth = bossHealth - 20;
+		}
+
+		if (boss.body.y > 350)
+		{
+			boss.body.velocity.y = -100;
+			bossHealth = bossHealth - 20;
+		}
+		else if (boss.body.y < 0)
+		{
+			boss.body.velocity.y = 100;
+			bossHealth = bossHealth - 20;
+		}
+		
+		if (bossHealth > 100 && bossHealth < 200)
+		{
+			bossMode = 2;
+		}
+	}
+	
+	if (bossMode == 2)
+	{
+		boss.body.velocity.x = 0;
+		boss.body.velocity.y = 0;
+		boss.frame = 2;
+		
+		if (bossHealth > 0 && bossHealth < 100)
+		{
+			bossMode = 3;
+		}
+	}
+	
+	if (bossMode == 3)
+	{
+		
+		if (bossHealth < 1)
+		{
+			boss.kill();
+		}
+	}
+
+
 }
 
 function fightShooter () {
@@ -580,7 +651,6 @@ function fightShooter () {
 
 function fightSmall () {
 	
-	small.kill();
 	if (specialAttack1.alive)
 	{
 	specialAttack1.kill();
@@ -664,6 +734,11 @@ function shotDie () {
 	shotFired = false;
 }
 
+function bossHit () {
+	
+	bossHealth = bossHealth - 10;
+}
+
 function loadNext () {
 
 game.world.removeAll();
@@ -715,10 +790,10 @@ fightSmall();
 		}
 		
 		if (specialPrep == true && specialReady.alive == false)
-	{
+		{
 		specialReady = game.add.sprite(550, game.world.height - 50, 'special');
 		specialReady.scale.setTo(0.5, 0.5);
-	}
+		}
 }
 
 function keyCollect (player, key) {
@@ -857,6 +932,12 @@ function start ()
 		shot = game.add.sprite(0, 0, 'shooterShot');
 		shot.enableBody = true;
 		shot.kill();
+		
+		boss = game.add.sprite(0, 0, 'boss');
+		game.physics.arcade.enable(boss);
+		boss.enableBody = true;
+		boss.kill();
+		
 		
 		//Player
 		
@@ -1837,7 +1918,7 @@ function bossStage ()
 		key2 = game.input.keyboard.addKey(Phaser.Keyboard.R);
 		key3 = game.input.keyboard.addKey(Phaser.Keyboard.A);
 		key4 = game.input.keyboard.addKey(Phaser.Keyboard.F);
-		keyNEXT = game.input.keyboard.addKey(Phaser.Keyboard.J);
+		//keyNEXT = game.input.keyboard.addKey(Phaser.Keyboard.J);
 		swordStun = false;	
 		shotFired = false;	
 
@@ -1861,12 +1942,20 @@ function bossStage ()
 		ground.body.immovable = true;
 		ground = platform.create(400, game.world.height - 32, 'platform');
 		ground.body.immovable = true;
-		key = goldKey.create(368, 300, 'orb');
-		key.body.immovable = true;
 		
 		//Pickups
-
+		
 		//enimies
+		
+		boss = game.add.sprite(250, 50, 'boss');
+		boss.scale.setTo(3.5, 3.5);
+		game.physics.arcade.enable(boss);
+		boss.enableBody = true;
+		boss.animations.add('fly', [0, 1], 5, true);
+		bossMode = 1;
+		bossHealth = 300;
+		boss.body.velocity.x = -200;
+		boss.body.velocity.y = 100;
 		
 		//Player
 		
